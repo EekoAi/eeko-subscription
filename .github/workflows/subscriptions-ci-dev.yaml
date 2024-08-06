@@ -15,7 +15,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   HARBOR_REGISTRY_URI: ${{ vars.HARBOR_REGISTRY_URI }}
   HARBOR_REGISTRY_HOST: ${{ vars.HARBOR_REGISTRY_HOST }}
-  TAG: 1.0.0
+  TAG: 1.0.3
 
 jobs:
   buildImage:
