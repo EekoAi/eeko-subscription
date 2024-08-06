@@ -1,0 +1,36 @@
+name: prod-subscription-service
+"on":
+  push:
+    branches:
+      - release-prod
+  workflow_dispatch: {}
+env:
+  SPRING_PROFILES_ACTIVE: prod
+  DATABASE_HOST: ${{ vars.PROD_DATABASE_HOST }}
+  DATABASE_SCHEMA: ${{ vars.PROD_DATABASE_SCHEMA }}
+  SPRING_DATASOURCE_USERNAME: ${{ secrets.PROD_SPRING_DATASOURCE_USERNAME }}
+  SPRING_DATASOURCE_PASSWORD: ${{ secrets.PROD_SPRING_DATASOURCE_PASSWORD }}
+  NOTIFICATION_SERVICE_URL: ${{ vars.PROD_NOTIFICATION_SERVICE_URL }}
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  HARBOR_REGISTRY_URI: ${{ vars.HARBOR_REGISTRY_URI }}
+  HARBOR_REGISTRY_HOST: ${{ vars.HARBOR_REGISTRY_HOST }}
+  TAG: 1.0.0
+
+jobs:
+  buildImage:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: docker login
+        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $HARBOR_REGISTRY_HOST
+      - name: docker build
+        run: docker build --build-arg SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE --build-arg DATABASE_HOST=$DATABASE_HOST --build-arg DATABASE_SCHEMA=$DATABASE_SCHEMA --build-arg SPRING_DATASOURCE_USERNAME=$SPRING_DATASOURCE_USERNAME --build-arg SPRING_DATASOURCE_PASSWORD=$SPRING_DATASOURCE_PASSWORD --build-arg NOTIFICATION_SERVICE_URL=$NOTIFICATION_SERVICE_URL -t $HARBOR_REGISTRY_URI/prod-subscription-service:$TAG .
+      - name: push image
+        run: docker push $HARBOR_REGISTRY_URI/prod-subscription-service:$TAG
+
